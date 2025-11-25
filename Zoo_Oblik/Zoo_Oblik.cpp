@@ -5,9 +5,10 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
-#include <limits> // Äëÿ std::numeric_limits
-#include <chrono> // Äëÿ ðîáîòè ç ÷àñîì
-#include <ctime>  // Äëÿ ïåðåòâîðåííÿ ÷àñó
+#include <limits> // ��� std::numeric_limits
+#include <chrono> // ��� ������ � �����
+#include <ctime>  // ��� ������������ ����
+#include <algorithm> // ��� std::max
 
 using namespace std;
 
@@ -23,7 +24,7 @@ string trim(const string& s) {
 // Êîíñòàíòà äëÿ ìàêñèìàëüíîãî ðîçì³ðó
 const int MAX_ANIMALS = 24;
 
-// ÑÒÐÓÊÒÓÐÀ
+// ��������� (��������)
 struct Animal
 {
     string name = ""; // ²í³ö³àë³çàö³ÿ ïóñòèì ðÿäêîì
@@ -32,8 +33,12 @@ struct Animal
     string medical_history = "Íåìàº"; // Íîâå ïîëå äëÿ ìåäè÷íèõ çàïèñ³â
 };
 
+// =====================================================
+//           �����Ͳ �������ײ ����ֲ�
+// =====================================================
+
 /**
- * ÆÓÐÍÀË ÏÎÄ²É: Çàïèñóº ä³þ ó ôàéë action_log.txt (ß.Ï.)
+ * ������ ��Ĳ�: ������ �� � ���� action_log.txt
  */
 void logAction(const string& action)
 {
@@ -63,7 +68,8 @@ void logAction(const string& action)
 }
 
 /**
- * ÂÂÅÄÅÍÍß: Ôóíêö³ÿ äëÿ äîäàâàííÿ ÍÎÂÈÕ òâàðèíîê äî ³ñíóþ÷îãî ñïèñêó (Í.Á.)
+ * ��������: ������� ��� ��������� ����� �������� �� ��������� ������
+ *
  */
 void addNewAnimals(Animal data[], int& current_num)
 {
@@ -141,7 +147,12 @@ void addNewAnimals(Animal data[], int& current_num)
     cout << "\nÍîâ³ äàí³ ââåäåíî. Çàãàëüíà ê³ëüê³ñòü: " << current_num << ". Çáåðåæ³òü ¿õ (ïóíêò 5).\n";
 }
 
-// Ïðîòîòèïè
+
+// =====================================================
+//           ����̲�Ͳ ����ֲ� (����, I/O)
+// =====================================================
+
+// ���������
 void menu(Animal data[], int& current_num);
 void outputAnimal(Animal data[], int n);
 void saveToCSV(Animal data[], int n);
@@ -150,7 +161,7 @@ void moveAnimal(Animal data[], int current_num);
 void addMedicalRecord(Animal data[], int current_num);
 
 /**
- * ÏÅÐÅÌ²ÙÅÍÍß: Çì³íþº ëîêàö³þ îáðàíî¿ òâàðèíè (ß.Ï.)
+ * ����̲�����: ����� ������� ������ �������
  */
 void moveAnimal(Animal data[], int current_num)
 {
@@ -230,7 +241,7 @@ void addMedicalRecord(Animal data[], int current_num)
         return;
     }
 
-    int array_index = index_to_modify;
+    int array_index = index_to_modify - 1;
 
     cout << "Îáðàíà òâàðèíà: " << data[array_index].name;
     cout << "\nÏîòî÷íà ìåä. ³ñòîð³ÿ: " << data[array_index].medical_history;
@@ -271,7 +282,7 @@ int loadFromCSV(Animal data[], int max_size)
     int count = 0;
 
     if (!inputFile.is_open()) {
-        cout << "\nÔàéë äàíèõ '" << filename << "' íå çíàéäåíî. Ñïèñîê ïîðîæí³é.\n";
+        cout << "\n���� ����� '" << filename << "' �� ��������. ������� � ���������� ������.\n";
         return 0;
     }
 
@@ -286,6 +297,7 @@ int loadFromCSV(Animal data[], int max_size)
         string segment;
         int field_index = 0;
 
+        // ������������� ',' �� ���������
         while (getline(ss, segment, ',')) {
             // !!! ÂÈÏÐÀÂËÅÍÍß: Î÷èùóºìî ñåãìåíò â³ä ëàïîê ïåðåä âèêîðèñòàííÿì !!!
             string clean_segment = unescape_csv(segment);
@@ -331,28 +343,95 @@ void outputAnimal(Animal data[], int n)
         return;
     }
 
-    cout << "\n--- ÄÀÍ² ÏÐÎ " << n << " ÒÂÀÐÈÍÎÊ ---\n";
-    cout << "+----+------------------+---------+------------------+--------------------+\n";
-    cout << "| " << left << setw(2) << "#"
-        << " | " << left << setw(16) << "²ì'ÿ"
-        << " | " << setw(7) << "Â³ê"
-        << " | " << setw(16) << "Ðîçì³ùåííÿ"
-        << " | " << setw(18) << "Ìåä. ²ñòîð³ÿ" << " |\n";
-    cout << "+----+------------------+---------+------------------+--------------------+\n";
+    // ��������� ������ �������
+    const int w_num = 2;
+    const int w_name = 16;
+    const int w_age = 7;
+    const int w_loc = 30;
+    const int w_med = 40;
+
+    cout << "\n--- ��Ͳ ��� " << n << " �������� ---\n";
+
+    // ������� ��������� �������
+    string separator = "+" + string(w_num + 2, '-')
+        + "+" + string(w_name + 2, '-')
+        + "+" + string(w_age + 2, '-')
+        + "+" + string(w_loc + 2, '-')
+        + "+" + string(w_med + 2, '-') + "+\n";
+
+    cout << separator;
+
+    cout << "| " << left << setw(w_num) << "#"
+        << " | " << left << setw(w_name) << "��'�"
+        << " | " << setw(w_age) << "³�"
+        << " | " << setw(w_loc) << "���������"
+        << " | " << setw(w_med) << "���. ������" << " |\n";
+
+    cout << separator;
 
     for (int i = 0; i < n; i++)
     {
-        string name_preview = data[i].name.length() > 16 ? data[i].name.substr(0, 13) + "..." : data[i].name;
-        string loc_preview = data[i].location.length() > 16 ? data[i].location.substr(0, 13) + "..." : data[i].location;
-        string med_preview = data[i].medical_history.length() > 18 ? data[i].medical_history.substr(0, 15) + "..." : data[i].medical_history;
+        string s_name = data[i].name;
+        string s_loc = data[i].location;
+        string s_med = data[i].medical_history;
 
-        cout << "| " << left << setw(2) << (i + 1)
-            << " | " << left << setw(16) << name_preview
-            << " | " << setw(7) << data[i].age
-            << " | " << setw(16) << loc_preview
-            << " | " << setw(18) << med_preview << " |\n";
+        // ���������� ��������� ������� ����� ��� ��������� ������
+        // ������������� static_cast<int> ��� ��������� ����������� C4267
+        int h_name = s_name.empty() ? 1 : static_cast<int>((s_name.length() + w_name - 1) / w_name);
+        int h_loc = s_loc.empty() ? 1 : static_cast<int>((s_loc.length() + w_loc - 1) / w_loc);
+        int h_med = s_med.empty() ? 1 : static_cast<int>((s_med.length() + w_med - 1) / w_med);
+
+        // ��������� ����������� ������ ��� ����� ����� �������
+        int max_h = h_name;
+        if (h_loc > max_h) max_h = h_loc;
+        if (h_med > max_h) max_h = h_med;
+        if (max_h < 1) max_h = 1;
+
+        for (int r = 0; r < max_h; r++)
+        {
+            cout << "| ";
+
+            // ������� # (����� � ������� �����)
+            if (r == 0) cout << left << setw(w_num) << (i + 1);
+            else        cout << setw(w_num) << " ";
+
+            cout << " | ";
+
+            // ������� ��'�
+            string sub_name = "";
+            // ������������ ��� ��������� ����������� ��������� signed/unsigned
+            if (static_cast<size_t>(r * w_name) < s_name.length())
+                sub_name = s_name.substr(r * w_name, w_name);
+            cout << left << setw(w_name) << sub_name;
+
+            cout << " | ";
+
+            // ������� ³� (����� � ������� �����)
+            if (r == 0) cout << setw(w_age) << data[i].age;
+            else        cout << setw(w_age) << " ";
+
+            cout << " | ";
+
+            // ������� ���������
+            string sub_loc = "";
+            if (static_cast<size_t>(r * w_loc) < s_loc.length())
+                sub_loc = s_loc.substr(r * w_loc, w_loc);
+            cout << left << setw(w_loc) << sub_loc;
+
+            cout << " | ";
+
+            // ������� ���. ������
+            string sub_med = "";
+            if (static_cast<size_t>(r * w_med) < s_med.length())
+                sub_med = s_med.substr(r * w_med, w_med);
+            cout << left << setw(w_med) << sub_med;
+
+            cout << " |\n";
+        }
+
+        // ������� ��������� ���� ������� ������
+        cout << separator;
     }
-    cout << "+----+------------------+---------+------------------+--------------------+\n";
 }
 
 /**
@@ -410,6 +489,10 @@ void saveToCSV(Animal data[], int n)
         logAction("ÏÎÌÈËÊÀ: Íå âäàëîñÿ çáåðåãòè äàí³ ó ôàéë CSV.");
     }
 }
+
+// ====================================================================
+// ������� ���� (��������)
+// ====================================================================
 
 void menu(Animal data[], int& current_num)
 {
