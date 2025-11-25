@@ -11,6 +11,9 @@
 
 using namespace std;
 
+// прототипи
+string unescape_csv(const string& s);
+string escape_csv(const string& s);
 // Константа для максимального розміру
 const int MAX_ANIMALS = 24;
 
@@ -275,6 +278,8 @@ int loadFromCSV(Animal data[], int max_size)
         int field_index = 0;
 
         while (getline(ss, segment, ',')) {
+            // !!! ВИПРАВЛЕННЯ: Очищуємо сегмент від лапок перед використанням !!!
+            string clean_segment = unescape_csv(segment);
             if (field_index == 0) {
                 data[count].name = segment;
             }
@@ -344,6 +349,22 @@ void outputAnimal(Animal data[], int n)
 /**
  * Збереження даних в CSV
  */
+ // Допоміжна функція для запису: екранує кому подвійними лапками
+string escape_csv(const string& s) {
+    if (s.find(',') != string::npos) {
+        return "\"" + s + "\"";
+    }
+    return s;
+}
+
+// Допоміжна функція для читання: видаляє лапки, якщо є
+string unescape_csv(const string& s) {
+    if (s.length() >= 2 && s.front() == '"' && s.back() == '"') {
+        return s.substr(1, s.length() - 2);
+    }
+    return s;
+}
+
 void saveToCSV(Animal data[], int n)
 {
     if (n <= 0) {
@@ -363,11 +384,10 @@ void saveToCSV(Animal data[], int n)
         {
             if (!data[i].name.empty())
             {
-                // Записуємо дані (ОНОВЛЕНО)
-                outFile << data[i].name << ","
+                // !!! ВИПРАВЛЕННЯ: Використовуємо escape_csv для полів з можливими комами !!!
+                outFile << escape_csv(data[i].name) << ","
                     << data[i].age << ","
-                    << data[i].location << ","
-                    << data[i].medical_history << "\n";
+                    << escape_csv(data[i].location) << "\n";
             }
         }
 
