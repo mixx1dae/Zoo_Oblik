@@ -5,29 +5,35 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
-#include <limits> // Для std::numeric_limits
-#include <chrono> // Для роботи з часом
-#include <ctime>  // Для перетворення часу
+#include <limits> // Г„Г«Гї std::numeric_limits
+#include <chrono> // Г„Г«Гї Г°Г®ГЎГ®ГІГЁ Г§ Г·Г Г±Г®Г¬
+#include <ctime>  // Г„Г«Гї ГЇГҐГ°ГҐГІГўГ®Г°ГҐГ­Г­Гї Г·Г Г±Гі
 
 using namespace std;
 
-// прототипи
+// ГЇГ°Г®ГІГ®ГІГЁГЇГЁ
 string unescape_csv(const string& s);
 string escape_csv(const string& s);
-// Константа для максимального розміру
+string trim(const string& s) {
+    size_t start = s.find_first_not_of(" \t\r\n");
+    size_t end = s.find_last_not_of(" \t\r\n");
+    if (start == string::npos) return "";
+    return s.substr(start, end - start + 1);
+}
+// ГЉГ®Г­Г±ГІГ Г­ГІГ  Г¤Г«Гї Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГЈГ® Г°Г®Г§Г¬ВіГ°Гі
 const int MAX_ANIMALS = 24;
 
-// СТРУКТУРА
+// Г‘Г’ГђГ“ГЉГ’Г“ГђГЂ
 struct Animal
 {
-    string name = ""; // Ініціалізація пустим рядком
-    int age = 0;      // Ініціалізація нулем
+    string name = ""; // ВІГ­ВіГ¶ВіГ Г«ВіГ§Г Г¶ВіГї ГЇГіГ±ГІГЁГ¬ Г°ГїГ¤ГЄГ®Г¬
+    int age = 0;      // ВІГ­ВіГ¶ВіГ Г«ВіГ§Г Г¶ВіГї Г­ГіГ«ГҐГ¬
     string location = "";
-    string medical_history = "Немає"; // Нове поле для медичних записів
+    string medical_history = "ГЌГҐГ¬Г Вє"; // ГЌГ®ГўГҐ ГЇГ®Г«ГҐ Г¤Г«Гї Г¬ГҐГ¤ГЁГ·Г­ГЁГµ Г§Г ГЇГЁГ±ВіГў
 };
 
 /**
- * ЖУРНАЛ ПОДІЙ: Записує дію у файл action_log.txt (Я.П.)
+ * Г†Г“ГђГЌГЂГ‹ ГЏГЋГ„ВІГ‰: Г‡Г ГЇГЁГ±ГіВє Г¤ВіГѕ Гі ГґГ Г©Г« action_log.txt (Гџ.ГЏ.)
  */
 void logAction(const string& action)
 {
@@ -52,87 +58,90 @@ void logAction(const string& action)
     }
     else
     {
-        cerr << "Помилка: Не вдалося відкрити лог-файл" << endl;
+        cerr << "ГЏГ®Г¬ГЁГ«ГЄГ : ГЌГҐ ГўГ¤Г Г«Г®Г±Гї ГўВіГ¤ГЄГ°ГЁГІГЁ Г«Г®ГЈ-ГґГ Г©Г«" << endl;
     }
 }
 
 /**
- * ВВЕДЕННЯ: Функція для додавання НОВИХ тваринок до існуючого списку (Н.Б.)
+ * Г‚Г‚Г…Г„Г…ГЌГЌГџ: Г”ГіГ­ГЄГ¶ВіГї Г¤Г«Гї Г¤Г®Г¤Г ГўГ Г­Г­Гї ГЌГЋГ‚Г€Г• ГІГўГ Г°ГЁГ­Г®ГЄ Г¤Г® ВіГ±Г­ГіГѕГ·Г®ГЈГ® Г±ГЇГЁГ±ГЄГі (ГЌ.ГЃ.)
  */
 void addNewAnimals(Animal data[], int& current_num)
 {
     int space_left = MAX_ANIMALS - current_num;
 
     if (space_left <= 0) {
-        cout << "\nСписок повний! (Максимум " << MAX_ANIMALS << " тваринок).\n";
-        logAction("Спроба додати нові записи. Список повний.");
+        cout << "\nГ‘ГЇГЁГ±Г®ГЄ ГЇГ®ГўГ­ГЁГ©! (ГЊГ ГЄГ±ГЁГ¬ГіГ¬ " << MAX_ANIMALS << " ГІГўГ Г°ГЁГ­Г®ГЄ).\n";
+        logAction("Г‘ГЇГ°Г®ГЎГ  Г¤Г®Г¤Г ГІГЁ Г­Г®ГўВі Г§Г ГЇГЁГ±ГЁ. Г‘ГЇГЁГ±Г®ГЄ ГЇГ®ГўГ­ГЁГ©.");
         return;
     }
 
     int n_to_add;
-    cout << "\n--- ДОДАВАННЯ ТВАРИНИ (ВВЕДЕННЯ) ---\n";
-    cout << "У списку вже є " << current_num << ". Можна додати ще " << space_left << ".\n";
+    cout << "\n--- Г„ГЋГ„ГЂГ‚ГЂГЌГЌГџ Г’Г‚ГЂГђГ€ГЌГ€ (Г‚Г‚Г…Г„Г…ГЌГЌГџ) ---\n";
+    cout << "Г“ Г±ГЇГЁГ±ГЄГі ГўГ¦ГҐ Вє " << current_num << ". ГЊГ®Г¦Г­Г  Г¤Г®Г¤Г ГІГЁ Г№ГҐ " << space_left << ".\n";
 
     do {
-        cout << "Введіть, скільки тваринок додати (0 - скасувати): ";
+        cout << "Г‚ГўГҐГ¤ВіГІГј, Г±ГЄВіГ«ГјГЄГЁ ГІГўГ Г°ГЁГ­Г®ГЄ Г¤Г®Г¤Г ГІГЁ (0 - Г±ГЄГ Г±ГіГўГ ГІГЁ): ";
         if (!(cin >> n_to_add)) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cerr << "Помилка вводу. Спробуйте ще раз.\n";
+            cerr << "ГЏГ®Г¬ГЁГ«ГЄГ  ГўГўГ®Г¤Гі. Г‘ГЇГ°Г®ГЎГіГ©ГІГҐ Г№ГҐ Г°Г Г§.\n";
             n_to_add = -1;
         }
         else if (n_to_add < 0 || n_to_add > space_left) {
-            cerr << "Некоректна кількість. Введіть число від 0 до " << space_left << ".\n";
+            cerr << "ГЌГҐГЄГ®Г°ГҐГЄГІГ­Г  ГЄВіГ«ГјГЄВіГ±ГІГј. Г‚ГўГҐГ¤ВіГІГј Г·ГЁГ±Г«Г® ГўВіГ¤ 0 Г¤Г® " << space_left << ".\n";
         }
     } while (n_to_add < 0 || n_to_add > space_left);
 
     if (n_to_add == 0)
     {
-        cout << "Додавання скасовано.\n";
+        cout << "Г„Г®Г¤Г ГўГ Г­Г­Гї Г±ГЄГ Г±Г®ГўГ Г­Г®.\n";
         return;
     }
 
-    logAction("Початок додавання " + to_string(n_to_add) + " нових тваринок.");
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очищення буфера
+    logAction("ГЏГ®Г·Г ГІГ®ГЄ Г¤Г®Г¤Г ГўГ Г­Г­Гї " + to_string(n_to_add) + " Г­Г®ГўГЁГµ ГІГўГ Г°ГЁГ­Г®ГЄ.");
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ГЋГ·ГЁГ№ГҐГ­Г­Гї ГЎГіГґГҐГ°Г 
 
     int new_total_count = current_num + n_to_add;
 
     for (int i = current_num; i < new_total_count; i++)
     {
-        cout << "\n--- Тваринка #" << i + 1 << " ---";
-        cout << "\nВведіть ім'я тваринки: ";
+        cout << "\n--- Г’ГўГ Г°ГЁГ­ГЄГ  #" << i + 1 << " ---";
+        cout << "\nГ‚ГўГҐГ¤ВіГІГј ВіГ¬'Гї ГІГўГ Г°ГЁГ­ГЄГЁ: ";
         getline(cin, data[i].name);
+        data[i].name = trim(data[i].name);
+
         while (data[i].name.empty())
         {
-            cout << "Ім'я не може бути порожнім. Введіть ім'я: ";
+            cout << "ВІГ¬'Гї Г­ГҐ Г¬Г®Г¦ГҐ ГЎГіГІГЁ ГЇГ®Г°Г®Г¦Г­ВіГ¬. Г‚ГўГҐГ¤ВіГІГј ВіГ¬'Гї: ";
             getline(cin, data[i].name);
+            data[i].name = trim(data[i].name);
         }
 
-        cout << "Введіть вік тваринки: ";
+        cout << "Г‚ГўГҐГ¤ВіГІГј ГўВіГЄ ГІГўГ Г°ГЁГ­ГЄГЁ: ";
         while (!(cin >> data[i].age) || data[i].age < 0) {
-            cerr << "Некоректний вік. Введіть додатне число: ";
+            cerr << "ГЌГҐГЄГ®Г°ГҐГЄГІГ­ГЁГ© ГўВіГЄ. Г‚ГўГҐГ¤ВіГІГј Г¤Г®Г¤Г ГІГ­ГҐ Г·ГЁГ±Г«Г®: ";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
 
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        cout << "Введіть розміщення тваринки (номер клітки): ";
+        cout << "Г‚ГўГҐГ¤ВіГІГј Г°Г®Г§Г¬ВіГ№ГҐГ­Г­Гї ГІГўГ Г°ГЁГ­ГЄГЁ (Г­Г®Г¬ГҐГ° ГЄГ«ВіГІГЄГЁ): ";
         getline(cin, data[i].location);
         while (data[i].location.empty())
         {
-            cout << "Розміщення не може бути порожнім. Введіть розміщення: ";
+            cout << "ГђГ®Г§Г¬ВіГ№ГҐГ­Г­Гї Г­ГҐ Г¬Г®Г¦ГҐ ГЎГіГІГЁ ГЇГ®Г°Г®Г¦Г­ВіГ¬. Г‚ГўГҐГ¤ВіГІГј Г°Г®Г§Г¬ВіГ№ГҐГ­Г­Гї: ";
             getline(cin, data[i].location);
         }
-        // medical_history автоматично = "Немає" (зі структури)
+        // medical_history Г ГўГІГ®Г¬Г ГІГЁГ·Г­Г® = "ГЌГҐГ¬Г Вє" (Г§Ві Г±ГІГ°ГіГЄГІГіГ°ГЁ)
     }
 
     current_num = new_total_count;
-    logAction("Успішно додано " + to_string(n_to_add) + " тваринок.");
-    cout << "\nНові дані введено. Загальна кількість: " << current_num << ". Збережіть їх (пункт 5).\n";
+    logAction("Г“Г±ГЇВіГёГ­Г® Г¤Г®Г¤Г Г­Г® " + to_string(n_to_add) + " ГІГўГ Г°ГЁГ­Г®ГЄ.");
+    cout << "\nГЌГ®ГўВі Г¤Г Г­Ві ГўГўГҐГ¤ГҐГ­Г®. Г‡Г ГЈГ Г«ГјГ­Г  ГЄВіГ«ГјГЄВіГ±ГІГј: " << current_num << ". Г‡ГЎГҐГ°ГҐГ¦ВіГІГј ВїГµ (ГЇГіГ­ГЄГІ 5).\n";
 }
 
-// Прототипи
+// ГЏГ°Г®ГІГ®ГІГЁГЇГЁ
 void menu(Animal data[], int& current_num);
 void outputAnimal(Animal data[], int n);
 void saveToCSV(Animal data[], int n);
@@ -141,41 +150,41 @@ void moveAnimal(Animal data[], int current_num);
 void addMedicalRecord(Animal data[], int current_num);
 
 /**
- * ПЕРЕМІЩЕННЯ: Змінює локацію обраної тварини (Я.П.)
+ * ГЏГ…ГђГ…ГЊВІГ™Г…ГЌГЌГџ: Г‡Г¬ВіГ­ГѕВє Г«Г®ГЄГ Г¶ВіГѕ Г®ГЎГ°Г Г­Г®Вї ГІГўГ Г°ГЁГ­ГЁ (Гџ.ГЏ.)
  */
 void moveAnimal(Animal data[], int current_num)
 {
     outputAnimal(data, current_num);
     if (current_num <= 0)
     {
-        cout << "\nСписок порожній. Немає кого переміщувати.\n";
+        cout << "\nГ‘ГЇГЁГ±Г®ГЄ ГЇГ®Г°Г®Г¦Г­ВіГ©. ГЌГҐГ¬Г Вє ГЄГ®ГЈГ® ГЇГҐГ°ГҐГ¬ВіГ№ГіГўГ ГІГЁ.\n";
         return;
     }
 
-    cout << "\n--- ПЕРЕМІЩЕННЯ ТВАРИНИ ---";
-    cout << "\nВведіть номер тварини для переміщення (0 - скасувати): ";
+    cout << "\n--- ГЏГ…ГђГ…ГЊВІГ™Г…ГЌГЌГџ Г’Г‚ГЂГђГ€ГЌГ€ ---";
+    cout << "\nГ‚ГўГҐГ¤ВіГІГј Г­Г®Г¬ГҐГ° ГІГўГ Г°ГЁГ­ГЁ Г¤Г«Гї ГЇГҐГ°ГҐГ¬ВіГ№ГҐГ­Г­Гї (0 - Г±ГЄГ Г±ГіГўГ ГІГЁ): ";
 
     int index_to_modify;
     if (!(cin >> index_to_modify) || index_to_modify < 0 || index_to_modify > current_num)
     {
-        cout << "Невірний номер. Скасування дії.\n";
+        cout << "ГЌГҐГўВіГ°Г­ГЁГ© Г­Г®Г¬ГҐГ°. Г‘ГЄГ Г±ГіГўГ Г­Г­Гї Г¤ВіВї.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         return;
     }
     if (index_to_modify == 0)
     {
-        cout << "Скасовано.\n";
+        cout << "Г‘ГЄГ Г±Г®ГўГ Г­Г®.\n";
         return;
     }
 
     int array_index = index_to_modify - 1;
     string old_location = data[array_index].location;
 
-    cout << "Обрана тварина: " << data[array_index].name;
-    cout << "\nПоточне розміщення: " << old_location;
-    cout << "\nВведіть НОВЕ розміщення: ";
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очищення буфера
+    cout << "ГЋГЎГ°Г Г­Г  ГІГўГ Г°ГЁГ­Г : " << data[array_index].name;
+    cout << "\nГЏГ®ГІГ®Г·Г­ГҐ Г°Г®Г§Г¬ВіГ№ГҐГ­Г­Гї: " << old_location;
+    cout << "\nГ‚ГўГҐГ¤ВіГІГј ГЌГЋГ‚Г… Г°Г®Г§Г¬ВіГ№ГҐГ­Г­Гї: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ГЋГ·ГЁГ№ГҐГ­Г­Гї ГЎГіГґГҐГ°Г 
 
     string new_location;
     getline(cin, new_location);
@@ -183,76 +192,76 @@ void moveAnimal(Animal data[], int current_num)
     if (!new_location.empty())
     {
         data[array_index].location = new_location;
-        logAction("Переміщення: " + data[array_index].name + " з [" + old_location + "] до [" + new_location + "]");
-        cout << "Тварину переміщено. Не забудьте зберегти (пункт 5).\n";
+        logAction("ГЏГҐГ°ГҐГ¬ВіГ№ГҐГ­Г­Гї: " + data[array_index].name + " Г§ [" + old_location + "] Г¤Г® [" + new_location + "]");
+        cout << "Г’ГўГ Г°ГЁГ­Гі ГЇГҐГ°ГҐГ¬ВіГ№ГҐГ­Г®. ГЌГҐ Г§Г ГЎГіГ¤ГјГІГҐ Г§ГЎГҐГ°ГҐГЈГІГЁ (ГЇГіГ­ГЄГІ 5).\n";
     }
     else
     {
-        cout << "Введення порожнє. Скасовано.\n";
+        cout << "Г‚ГўГҐГ¤ГҐГ­Г­Гї ГЇГ®Г°Г®Г¦Г­Вє. Г‘ГЄГ Г±Г®ГўГ Г­Г®.\n";
     }
 }
 
 /**
- * МЕДИЧНІ ЗАПИСИ: Додає новий запис до історії хвороби (Л.Д.)
+ * ГЊГ…Г„Г€Г—ГЌВІ Г‡ГЂГЏГ€Г‘Г€: Г„Г®Г¤Г Вє Г­Г®ГўГЁГ© Г§Г ГЇГЁГ± Г¤Г® ВіГ±ГІГ®Г°ВіВї ГµГўГ®Г°Г®ГЎГЁ (Г‹.Г„.)
  */
 void addMedicalRecord(Animal data[], int current_num)
 {
     outputAnimal(data, current_num);
     if (current_num <= 0)
     {
-        cout << "\nСписок порожній. Немає кому додавати запис.\n";
+        cout << "\nГ‘ГЇГЁГ±Г®ГЄ ГЇГ®Г°Г®Г¦Г­ВіГ©. ГЌГҐГ¬Г Вє ГЄГ®Г¬Гі Г¤Г®Г¤Г ГўГ ГІГЁ Г§Г ГЇГЁГ±.\n";
         return;
     }
 
-    cout << "\n--- МЕДИЧНИЙ ЖУРНАЛ ---";
-    cout << "\nВведіть номер тварини для оновлення (0 - скасувати): ";
+    cout << "\n--- ГЊГ…Г„Г€Г—ГЌГ€Г‰ Г†Г“ГђГЌГЂГ‹ ---";
+    cout << "\nГ‚ГўГҐГ¤ВіГІГј Г­Г®Г¬ГҐГ° ГІГўГ Г°ГЁГ­ГЁ Г¤Г«Гї Г®Г­Г®ГўГ«ГҐГ­Г­Гї (0 - Г±ГЄГ Г±ГіГўГ ГІГЁ): ";
 
     int index_to_modify;
     if (!(cin >> index_to_modify) || index_to_modify < 0 || index_to_modify > current_num)
     {
-        cout << "Невірний номер. Скасування дії.\n";
+        cout << "ГЌГҐГўВіГ°Г­ГЁГ© Г­Г®Г¬ГҐГ°. Г‘ГЄГ Г±ГіГўГ Г­Г­Гї Г¤ВіВї.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         return;
     }
     if (index_to_modify == 0)
     {
-        cout << "Скасовано.\n";
+        cout << "Г‘ГЄГ Г±Г®ГўГ Г­Г®.\n";
         return;
     }
 
     int array_index = index_to_modify;
 
-    cout << "Обрана тварина: " << data[array_index].name;
-    cout << "\nПоточна мед. історія: " << data[array_index].medical_history;
-    cout << "\nВведіть НОВИЙ ЗАПИС (буде додано до історії): ";
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очищення буфера
+    cout << "ГЋГЎГ°Г Г­Г  ГІГўГ Г°ГЁГ­Г : " << data[array_index].name;
+    cout << "\nГЏГ®ГІГ®Г·Г­Г  Г¬ГҐГ¤. ВіГ±ГІГ®Г°ВіГї: " << data[array_index].medical_history;
+    cout << "\nГ‚ГўГҐГ¤ВіГІГј ГЌГЋГ‚Г€Г‰ Г‡ГЂГЏГ€Г‘ (ГЎГіГ¤ГҐ Г¤Г®Г¤Г Г­Г® Г¤Г® ВіГ±ГІГ®Г°ВіВї): ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ГЋГ·ГЁГ№ГҐГ­Г­Гї ГЎГіГґГҐГ°Г 
 
     string new_record;
     getline(cin, new_record);
 
     if (!new_record.empty())
     {
-        if (data[array_index].medical_history == "Немає")
+        if (data[array_index].medical_history == "ГЌГҐГ¬Г Вє")
         {
             data[array_index].medical_history = new_record;
         }
         else
         {
-            data[array_index].medical_history += " | " + new_record; // Додаємо з роздільником
+            data[array_index].medical_history += " | " + new_record; // Г„Г®Г¤Г ВєГ¬Г® Г§ Г°Г®Г§Г¤ВіГ«ГјГ­ГЁГЄГ®Г¬
         }
-        logAction("Мед. запис: " + data[array_index].name + " - додано: '" + new_record + "'");
-        cout << "Медичний запис оновлено. Не забудьте зберегти (пункт 5).\n";
+        logAction("ГЊГҐГ¤. Г§Г ГЇГЁГ±: " + data[array_index].name + " - Г¤Г®Г¤Г Г­Г®: '" + new_record + "'");
+        cout << "ГЊГҐГ¤ГЁГ·Г­ГЁГ© Г§Г ГЇГЁГ± Г®Г­Г®ГўГ«ГҐГ­Г®. ГЌГҐ Г§Г ГЎГіГ¤ГјГІГҐ Г§ГЎГҐГ°ГҐГЈГІГЁ (ГЇГіГ­ГЄГІ 5).\n";
     }
     else
     {
-        cout << "Введення порожнє. Скасовано.\n";
+        cout << "Г‚ГўГҐГ¤ГҐГ­Г­Гї ГЇГ®Г°Г®Г¦Г­Вє. Г‘ГЄГ Г±Г®ГўГ Г­Г®.\n";
     }
 }
 
 
 /**
- * Читання даних з CSV-файлу
+ * Г—ГЁГІГ Г­Г­Гї Г¤Г Г­ГЁГµ Г§ CSV-ГґГ Г©Г«Гі
  */
 int loadFromCSV(Animal data[], int max_size)
 {
@@ -262,11 +271,11 @@ int loadFromCSV(Animal data[], int max_size)
     int count = 0;
 
     if (!inputFile.is_open()) {
-        cout << "\nФайл даних '" << filename << "' не знайдено. Список порожній.\n";
+        cout << "\nГ”Г Г©Г« Г¤Г Г­ГЁГµ '" << filename << "' Г­ГҐ Г§Г­Г Г©Г¤ГҐГ­Г®. Г‘ГЇГЁГ±Г®ГЄ ГЇГ®Г°Г®Г¦Г­ВіГ©.\n";
         return 0;
     }
 
-    // Пропускаємо заголовок (Ім'я,Вік,Розміщення,Мед.Історія)
+    // ГЏГ°Г®ГЇГіГ±ГЄГ ВєГ¬Г® Г§Г ГЈГ®Г«Г®ГўГ®ГЄ (ВІГ¬'Гї,Г‚ВіГЄ,ГђГ®Г§Г¬ВіГ№ГҐГ­Г­Гї,ГЊГҐГ¤.ВІГ±ГІГ®Г°ВіГї)
     getline(inputFile, line);
 
     while (getline(inputFile, line) && count < max_size)
@@ -278,7 +287,7 @@ int loadFromCSV(Animal data[], int max_size)
         int field_index = 0;
 
         while (getline(ss, segment, ',')) {
-            // !!! ВИПРАВЛЕННЯ: Очищуємо сегмент від лапок перед використанням !!!
+            // !!! Г‚Г€ГЏГђГЂГ‚Г‹Г…ГЌГЌГџ: ГЋГ·ГЁГ№ГіВєГ¬Г® Г±ГҐГЈГ¬ГҐГ­ГІ ГўВіГ¤ Г«Г ГЇГ®ГЄ ГЇГҐГ°ГҐГ¤ ГўГЁГЄГ®Г°ГЁГ±ГІГ Г­Г­ГїГ¬ !!!
             string clean_segment = unescape_csv(segment);
             if (field_index == 0) {
                 data[count].name = segment;
@@ -294,7 +303,7 @@ int loadFromCSV(Animal data[], int max_size)
             else if (field_index == 2) {
                 data[count].location = segment;
             }
-            else if (field_index == 3) { // Нове поле
+            else if (field_index == 3) { // ГЌГ®ГўГҐ ГЇГ®Г«ГҐ
                 data[count].medical_history = segment;
             }
             field_index++;
@@ -307,28 +316,28 @@ int loadFromCSV(Animal data[], int max_size)
     }
 
     inputFile.close();
-    cout << "\nУспішно завантажено " << count << " записів з файлу '" << filename << "'.\n";
+    cout << "\nГ“Г±ГЇВіГёГ­Г® Г§Г ГўГ Г­ГІГ Г¦ГҐГ­Г® " << count << " Г§Г ГЇГЁГ±ВіГў Г§ ГґГ Г©Г«Гі '" << filename << "'.\n";
     return count;
 }
 
 
 /**
- * Виведення даних у форматі таблиці
+ * Г‚ГЁГўГҐГ¤ГҐГ­Г­Гї Г¤Г Г­ГЁГµ Гі ГґГ®Г°Г¬Г ГІВі ГІГ ГЎГ«ГЁГ¶Ві
  */
 void outputAnimal(Animal data[], int n)
 {
     if (n <= 0) {
-        cout << "\nНемає даних для виведення. Спочатку додайте дані (пункт 1).\n";
+        cout << "\nГЌГҐГ¬Г Вє Г¤Г Г­ГЁГµ Г¤Г«Гї ГўГЁГўГҐГ¤ГҐГ­Г­Гї. Г‘ГЇГ®Г·Г ГІГЄГі Г¤Г®Г¤Г Г©ГІГҐ Г¤Г Г­Ві (ГЇГіГ­ГЄГІ 1).\n";
         return;
     }
 
-    cout << "\n--- ДАНІ ПРО " << n << " ТВАРИНОК ---\n";
+    cout << "\n--- Г„ГЂГЌВІ ГЏГђГЋ " << n << " Г’Г‚ГЂГђГ€ГЌГЋГЉ ---\n";
     cout << "+----+------------------+---------+------------------+--------------------+\n";
     cout << "| " << left << setw(2) << "#"
-        << " | " << left << setw(16) << "Ім'я"
-        << " | " << setw(7) << "Вік"
-        << " | " << setw(16) << "Розміщення"
-        << " | " << setw(18) << "Мед. Історія" << " |\n";
+        << " | " << left << setw(16) << "ВІГ¬'Гї"
+        << " | " << setw(7) << "Г‚ВіГЄ"
+        << " | " << setw(16) << "ГђГ®Г§Г¬ВіГ№ГҐГ­Г­Гї"
+        << " | " << setw(18) << "ГЊГҐГ¤. ВІГ±ГІГ®Г°ВіГї" << " |\n";
     cout << "+----+------------------+---------+------------------+--------------------+\n";
 
     for (int i = 0; i < n; i++)
@@ -347,9 +356,9 @@ void outputAnimal(Animal data[], int n)
 }
 
 /**
- * Збереження даних в CSV
+ * Г‡ГЎГҐГ°ГҐГ¦ГҐГ­Г­Гї Г¤Г Г­ГЁГµ Гў CSV
  */
- // Допоміжна функція для запису: екранує кому подвійними лапками
+ // Г„Г®ГЇГ®Г¬ВіГ¦Г­Г  ГґГіГ­ГЄГ¶ВіГї Г¤Г«Гї Г§Г ГЇГЁГ±Гі: ГҐГЄГ°Г Г­ГіВє ГЄГ®Г¬Гі ГЇГ®Г¤ГўВіГ©Г­ГЁГ¬ГЁ Г«Г ГЇГЄГ Г¬ГЁ
 string escape_csv(const string& s) {
     if (s.find(',') != string::npos) {
         return "\"" + s + "\"";
@@ -357,7 +366,7 @@ string escape_csv(const string& s) {
     return s;
 }
 
-// Допоміжна функція для читання: видаляє лапки, якщо є
+// Г„Г®ГЇГ®Г¬ВіГ¦Г­Г  ГґГіГ­ГЄГ¶ВіГї Г¤Г«Гї Г·ГЁГІГ Г­Г­Гї: ГўГЁГ¤Г Г«ГїВє Г«Г ГЇГЄГЁ, ГїГЄГ№Г® Вє
 string unescape_csv(const string& s) {
     if (s.length() >= 2 && s.front() == '"' && s.back() == '"') {
         return s.substr(1, s.length() - 2);
@@ -368,7 +377,7 @@ string unescape_csv(const string& s) {
 void saveToCSV(Animal data[], int n)
 {
     if (n <= 0) {
-        cout << "\nНемає даних для збереження.\n";
+        cout << "\nГЌГҐГ¬Г Вє Г¤Г Г­ГЁГµ Г¤Г«Гї Г§ГЎГҐГ°ГҐГ¦ГҐГ­Г­Гї.\n";
         return;
     }
 
@@ -377,14 +386,14 @@ void saveToCSV(Animal data[], int n)
 
     if (outFile.is_open())
     {
-        // Записуємо заголовок (ОНОВЛЕНО)
-        outFile << "Ім'я,Вік,Розміщення,Мед.Історія\n";
+        // Г‡Г ГЇГЁГ±ГіВєГ¬Г® Г§Г ГЈГ®Г«Г®ГўГ®ГЄ (ГЋГЌГЋГ‚Г‹Г…ГЌГЋ)
+        outFile << "ВІГ¬'Гї,Г‚ВіГЄ,ГђГ®Г§Г¬ВіГ№ГҐГ­Г­Гї,ГЊГҐГ¤.ВІГ±ГІГ®Г°ВіГї\n";
 
         for (int i = 0; i < n; i++)
         {
             if (!data[i].name.empty())
             {
-                // !!! ВИПРАВЛЕННЯ: Використовуємо escape_csv для полів з можливими комами !!!
+                // !!! Г‚Г€ГЏГђГЂГ‚Г‹Г…ГЌГЌГџ: Г‚ГЁГЄГ®Г°ГЁГ±ГІГ®ГўГіВєГ¬Г® escape_csv Г¤Г«Гї ГЇГ®Г«ВіГў Г§ Г¬Г®Г¦Г«ГЁГўГЁГ¬ГЁ ГЄГ®Г¬Г Г¬ГЁ !!!
                 outFile << escape_csv(data[i].name) << ","
                     << data[i].age << ","
                     << escape_csv(data[i].location) << "\n";
@@ -392,41 +401,41 @@ void saveToCSV(Animal data[], int n)
         }
 
         outFile.close();
-        cout << "\nДані про " << n << " тваринок успішно збережено у файл: " << filename << endl;
-        logAction("Дані успішно збережено (" + to_string(n) + " записів).");
+        cout << "\nГ„Г Г­Ві ГЇГ°Г® " << n << " ГІГўГ Г°ГЁГ­Г®ГЄ ГіГ±ГЇВіГёГ­Г® Г§ГЎГҐГ°ГҐГ¦ГҐГ­Г® Гі ГґГ Г©Г«: " << filename << endl;
+        logAction("Г„Г Г­Ві ГіГ±ГЇВіГёГ­Г® Г§ГЎГҐГ°ГҐГ¦ГҐГ­Г® (" + to_string(n) + " Г§Г ГЇГЁГ±ВіГў).");
     }
     else
     {
-        cerr << "\nПомилка: Не вдалося відкрити файл " << filename << " для запису!" << endl;
-        logAction("ПОМИЛКА: Не вдалося зберегти дані у файл CSV.");
+        cerr << "\nГЏГ®Г¬ГЁГ«ГЄГ : ГЌГҐ ГўГ¤Г Г«Г®Г±Гї ГўВіГ¤ГЄГ°ГЁГІГЁ ГґГ Г©Г« " << filename << " Г¤Г«Гї Г§Г ГЇГЁГ±Гі!" << endl;
+        logAction("ГЏГЋГЊГ€Г‹ГЉГЂ: ГЌГҐ ГўГ¤Г Г«Г®Г±Гї Г§ГЎГҐГ°ГҐГЈГІГЁ Г¤Г Г­Ві Гі ГґГ Г©Г« CSV.");
     }
 }
 
 void menu(Animal data[], int& current_num)
 {
-    logAction("Програма запущена.");
+    logAction("ГЏГ°Г®ГЈГ°Г Г¬Г  Г§Г ГЇГіГ№ГҐГ­Г .");
     bool running = true;
     while (running)
     {
         int choice = 0;
 
-        cout << "\n================= ГОЛОВНЕ МЕНЮ =================\n";
-        cout << "  (Наразі обробляється " << current_num << "/" << MAX_ANIMALS << " тваринок)\n";
+        cout << "\n================= ГѓГЋГ‹ГЋГ‚ГЌГ… ГЊГ…ГЌГћ =================\n";
+        cout << "  (ГЌГ Г°Г Г§Ві Г®ГЎГ°Г®ГЎГ«ГїВєГІГјГ±Гї " << current_num << "/" << MAX_ANIMALS << " ГІГўГ Г°ГЁГ­Г®ГЄ)\n";
         cout << "------------------------------------------------\n";
-        cout << "  1 - Додати тварину (Введення)\n";
-        cout << "  2 - Перемістити тварину (Переміщення)\n";
-        cout << "  3 - Додати медичний запис\n";
-        cout << "  4 - Вивести всі тваринки на екран\n";
-        cout << "  5 - Зберегти поточні дані у файл CSV\n";
-        cout << "  6 - Вихід з програми\n";
+        cout << "  1 - Г„Г®Г¤Г ГІГЁ ГІГўГ Г°ГЁГ­Гі (Г‚ГўГҐГ¤ГҐГ­Г­Гї)\n";
+        cout << "  2 - ГЏГҐГ°ГҐГ¬ВіГ±ГІГЁГІГЁ ГІГўГ Г°ГЁГ­Гі (ГЏГҐГ°ГҐГ¬ВіГ№ГҐГ­Г­Гї)\n";
+        cout << "  3 - Г„Г®Г¤Г ГІГЁ Г¬ГҐГ¤ГЁГ·Г­ГЁГ© Г§Г ГЇГЁГ±\n";
+        cout << "  4 - Г‚ГЁГўГҐГ±ГІГЁ ГўГ±Ві ГІГўГ Г°ГЁГ­ГЄГЁ Г­Г  ГҐГЄГ°Г Г­\n";
+        cout << "  5 - Г‡ГЎГҐГ°ГҐГЈГІГЁ ГЇГ®ГІГ®Г·Г­Ві Г¤Г Г­Ві Гі ГґГ Г©Г« CSV\n";
+        cout << "  6 - Г‚ГЁГµВіГ¤ Г§ ГЇГ°Г®ГЈГ°Г Г¬ГЁ\n";
         cout << "------------------------------------------------\n";
-        cout << "Ваш вибір: ";
+        cout << "Г‚Г Гё ГўГЁГЎВіГ°: ";
 
         if (!(cin >> choice)) {
-            logAction("Невірний ввід в меню (не число).");
+            logAction("ГЌГҐГўВіГ°Г­ГЁГ© ГўГўВіГ¤ Гў Г¬ГҐГ­Гѕ (Г­ГҐ Г·ГЁГ±Г«Г®).");
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cerr << "\nНевірний ввід. Спробуйте 1-6.\n";
+            cerr << "\nГЌГҐГўВіГ°Г­ГЁГ© ГўГўВіГ¤. Г‘ГЇГ°Г®ГЎГіГ©ГІГҐ 1-6.\n";
             continue;
         }
 
@@ -449,12 +458,12 @@ void menu(Animal data[], int& current_num)
             break;
         case 6:
             running = false;
-            logAction("Програма завершена користувачем.");
-            cout << "Вихід з програми.\n";
+            logAction("ГЏГ°Г®ГЈГ°Г Г¬Г  Г§Г ГўГҐГ°ГёГҐГ­Г  ГЄГ®Г°ГЁГ±ГІГіГўГ Г·ГҐГ¬.");
+            cout << "Г‚ГЁГµВіГ¤ Г§ ГЇГ°Г®ГЈГ°Г Г¬ГЁ.\n";
             break;
         default:
-            logAction("Невірний вибір в меню: " + to_string(choice));
-            cerr << "\nНевірний вибір. Спробуйте 1-6.\n";
+            logAction("ГЌГҐГўВіГ°Г­ГЁГ© ГўГЁГЎВіГ° Гў Г¬ГҐГ­Гѕ: " + to_string(choice));
+            cerr << "\nГЌГҐГўВіГ°Г­ГЁГ© ГўГЁГЎВіГ°. Г‘ГЇГ°Г®ГЎГіГ©ГІГҐ 1-6.\n";
             break;
         }
     }
@@ -462,20 +471,20 @@ void menu(Animal data[], int& current_num)
 
 int main()
 {
-    // Встановлюємо кодування консолі для Windows
+    // Г‚Г±ГІГ Г­Г®ГўГ«ГѕВєГ¬Г® ГЄГ®Г¤ГіГўГ Г­Г­Гї ГЄГ®Г­Г±Г®Г«Ві Г¤Г«Гї Windows
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
 
     int current_animal_count = 0;
     Animal all_animals[MAX_ANIMALS];
 
-    // Завантаження даних при старті
+    // Г‡Г ГўГ Г­ГІГ Г¦ГҐГ­Г­Гї Г¤Г Г­ГЁГµ ГЇГ°ГЁ Г±ГІГ Г°ГІВі
     current_animal_count = loadFromCSV(all_animals, MAX_ANIMALS);
 
-    // Виклик головного меню
+    // Г‚ГЁГЄГ«ГЁГЄ ГЈГ®Г«Г®ГўГ­Г®ГЈГ® Г¬ГҐГ­Гѕ
     menu(all_animals, current_animal_count);
 
-    cout << "\nНатисніть Enter для виходу...";
+    cout << "\nГЌГ ГІГЁГ±Г­ВіГІГј Enter Г¤Г«Гї ГўГЁГµГ®Г¤Гі...";
     cin.clear();
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     cin.get();
