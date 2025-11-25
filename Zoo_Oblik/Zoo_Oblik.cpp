@@ -8,13 +8,14 @@
 #include <limits> // Для std::numeric_limits
 #include <chrono> // Для роботи з часом
 #include <ctime>  // Для перетворення часу
+#include <algorithm> // Для std::max
 
 using namespace std;
 
 // Константа для максимального розміру
 const int MAX_ANIMALS = 24;
 
-// СТРУКТУРА
+// СТРУКТУРА (ОНОВЛЕНО)
 struct Animal
 {
     string name = ""; // Ініціалізація пустим рядком
@@ -23,8 +24,12 @@ struct Animal
     string medical_history = "Немає"; // Нове поле для медичних записів
 };
 
+// =====================================================
+//           ГОЛОВНІ ВИКОНАВЧІ ФУНКЦІЇ
+// =====================================================
+
 /**
- * ЖУРНАЛ ПОДІЙ: Записує дію у файл action_log.txt (Я.П.)
+ * ЖУРНАЛ ПОДІЙ: Записує дію у файл action_log.txt
  */
 void logAction(const string& action)
 {
@@ -54,7 +59,8 @@ void logAction(const string& action)
 }
 
 /**
- * ВВЕДЕННЯ: Функція для додавання НОВИХ тваринок до існуючого списку (Н.Б.)
+ * ВВЕДЕННЯ: Функція для додавання НОВИХ тваринок до існуючого списку
+ *
  */
 void addNewAnimals(Animal data[], int& current_num)
 {
@@ -129,6 +135,11 @@ void addNewAnimals(Animal data[], int& current_num)
     cout << "\nНові дані введено. Загальна кількість: " << current_num << ". Збережіть їх (пункт 5).\n";
 }
 
+
+// =====================================================
+//           ДОПОМІЖНІ ФУНКЦІЇ (Меню, I/O)
+// =====================================================
+
 // Прототипи
 void menu(Animal data[], int& current_num);
 void outputAnimal(Animal data[], int n);
@@ -138,7 +149,7 @@ void moveAnimal(Animal data[], int current_num);
 void addMedicalRecord(Animal data[], int current_num);
 
 /**
- * ПЕРЕМІЩЕННЯ: Змінює локацію обраної тварини (Я.П.)
+ * ПЕРЕМІЩЕННЯ: Змінює локацію обраної тварини
  */
 void moveAnimal(Animal data[], int current_num)
 {
@@ -190,7 +201,7 @@ void moveAnimal(Animal data[], int current_num)
 }
 
 /**
- * МЕДИЧНІ ЗАПИСИ: Додає новий запис до історії хвороби (Л.Д.)
+ * МЕДИЧНІ ЗАПИСИ: Додає новий запис до історії хвороби
  */
 void addMedicalRecord(Animal data[], int current_num)
 {
@@ -218,7 +229,7 @@ void addMedicalRecord(Animal data[], int current_num)
         return;
     }
 
-    int array_index = index_to_modify;
+    int array_index = index_to_modify - 1;
 
     cout << "Обрана тварина: " << data[array_index].name;
     cout << "\nПоточна мед. історія: " << data[array_index].medical_history;
@@ -249,7 +260,7 @@ void addMedicalRecord(Animal data[], int current_num)
 
 
 /**
- * Читання даних з CSV-файлу
+ * Читання даних з CSV-файлу (ОНОВЛЕНО)
  */
 int loadFromCSV(Animal data[], int max_size)
 {
@@ -259,7 +270,7 @@ int loadFromCSV(Animal data[], int max_size)
     int count = 0;
 
     if (!inputFile.is_open()) {
-        cout << "\nФайл даних '" << filename << "' не знайдено. Список порожній.\n";
+        cout << "\nФайл даних '" << filename << "' не знайдено. Почнемо з порожнього списку.\n";
         return 0;
     }
 
@@ -274,6 +285,7 @@ int loadFromCSV(Animal data[], int max_size)
         string segment;
         int field_index = 0;
 
+        // Використовуємо ',' як роздільник
         while (getline(ss, segment, ',')) {
             if (field_index == 0) {
                 data[count].name = segment;
@@ -308,7 +320,7 @@ int loadFromCSV(Animal data[], int max_size)
 
 
 /**
- * Виведення даних у форматі таблиці
+ * Виведення даних у форматі таблиці (ОНОВЛЕНО - Перенос рядків)
  */
 void outputAnimal(Animal data[], int n)
 {
@@ -317,32 +329,99 @@ void outputAnimal(Animal data[], int n)
         return;
     }
 
+    // Визначаємо ширину колонок
+    const int w_num = 2;
+    const int w_name = 16;
+    const int w_age = 7;
+    const int w_loc = 30;
+    const int w_med = 40;
+
     cout << "\n--- ДАНІ ПРО " << n << " ТВАРИНОК ---\n";
-    cout << "+----+------------------+---------+------------------+--------------------+\n";
-    cout << "| " << left << setw(2) << "#"
-        << " | " << left << setw(16) << "Ім'я"
-        << " | " << setw(7) << "Вік"
-        << " | " << setw(16) << "Розміщення"
-        << " | " << setw(18) << "Мед. Історія" << " |\n";
-    cout << "+----+------------------+---------+------------------+--------------------+\n";
+
+    // Формуємо розділювач таблиці
+    string separator = "+" + string(w_num + 2, '-')
+        + "+" + string(w_name + 2, '-')
+        + "+" + string(w_age + 2, '-')
+        + "+" + string(w_loc + 2, '-')
+        + "+" + string(w_med + 2, '-') + "+\n";
+
+    cout << separator;
+
+    cout << "| " << left << setw(w_num) << "#"
+        << " | " << left << setw(w_name) << "Ім'я"
+        << " | " << setw(w_age) << "Вік"
+        << " | " << setw(w_loc) << "Розміщення"
+        << " | " << setw(w_med) << "Мед. Історія" << " |\n";
+
+    cout << separator;
 
     for (int i = 0; i < n; i++)
     {
-        string name_preview = data[i].name.length() > 16 ? data[i].name.substr(0, 13) + "..." : data[i].name;
-        string loc_preview = data[i].location.length() > 16 ? data[i].location.substr(0, 13) + "..." : data[i].location;
-        string med_preview = data[i].medical_history.length() > 18 ? data[i].medical_history.substr(0, 15) + "..." : data[i].medical_history;
+        string s_name = data[i].name;
+        string s_loc = data[i].location;
+        string s_med = data[i].medical_history;
 
-        cout << "| " << left << setw(2) << (i + 1)
-            << " | " << left << setw(16) << name_preview
-            << " | " << setw(7) << data[i].age
-            << " | " << setw(16) << loc_preview
-            << " | " << setw(18) << med_preview << " |\n";
+        // Обчислюємо необхідну кількість рядків для поточного запису
+        // Використовуємо static_cast<int> для уникнення попереджень C4267
+        int h_name = s_name.empty() ? 1 : static_cast<int>((s_name.length() + w_name - 1) / w_name);
+        int h_loc = s_loc.empty() ? 1 : static_cast<int>((s_loc.length() + w_loc - 1) / w_loc);
+        int h_med = s_med.empty() ? 1 : static_cast<int>((s_med.length() + w_med - 1) / w_med);
+
+        // Знаходимо максимальну висоту для цього рядка таблиці
+        int max_h = h_name;
+        if (h_loc > max_h) max_h = h_loc;
+        if (h_med > max_h) max_h = h_med;
+        if (max_h < 1) max_h = 1;
+
+        for (int r = 0; r < max_h; r++)
+        {
+            cout << "| ";
+
+            // Колонка # (тільки в першому рядку)
+            if (r == 0) cout << left << setw(w_num) << (i + 1);
+            else        cout << setw(w_num) << " ";
+
+            cout << " | ";
+
+            // Колонка Ім'я
+            string sub_name = "";
+            // Перетворення для уникнення попереджень порівняння signed/unsigned
+            if (static_cast<size_t>(r * w_name) < s_name.length())
+                sub_name = s_name.substr(r * w_name, w_name);
+            cout << left << setw(w_name) << sub_name;
+
+            cout << " | ";
+
+            // Колонка Вік (тільки в першому рядку)
+            if (r == 0) cout << setw(w_age) << data[i].age;
+            else        cout << setw(w_age) << " ";
+
+            cout << " | ";
+
+            // Колонка Розміщення
+            string sub_loc = "";
+            if (static_cast<size_t>(r * w_loc) < s_loc.length())
+                sub_loc = s_loc.substr(r * w_loc, w_loc);
+            cout << left << setw(w_loc) << sub_loc;
+
+            cout << " | ";
+
+            // Колонка Мед. Історія
+            string sub_med = "";
+            if (static_cast<size_t>(r * w_med) < s_med.length())
+                sub_med = s_med.substr(r * w_med, w_med);
+            cout << left << setw(w_med) << sub_med;
+
+            cout << " |\n";
+        }
+
+        // Друкуємо розділювач після кожного запису
+        cout << separator;
     }
-    cout << "+----+------------------+---------+------------------+--------------------+\n";
 }
 
 /**
- * Збереження даних в CSV
+ * Збереження даних в CSV (ОНОВЛЕНО)
  */
 void saveToCSV(Animal data[], int n)
 {
@@ -381,6 +460,10 @@ void saveToCSV(Animal data[], int n)
         logAction("ПОМИЛКА: Не вдалося зберегти дані у файл CSV.");
     }
 }
+
+// ====================================================================
+// ГОЛОВНЕ МЕНЮ (ОНОВЛЕНО)
+// ====================================================================
 
 void menu(Animal data[], int& current_num)
 {
