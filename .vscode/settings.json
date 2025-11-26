@@ -1,0 +1,6 @@
+{
+  "window.autoDetectColorScheme": true,
+  "files.associations": {
+    "iostream": "cpp"
+  }
+}
